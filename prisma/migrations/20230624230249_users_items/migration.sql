@@ -1,0 +1,13 @@
+-- AlterTable
+ALTER TABLE `users` MODIFY `photo` MEDIUMBLOB NULL;
+
+-- CreateTable
+CREATE TABLE `items` (
+    `id_item` MEDIUMINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `type` VARCHAR(191) NOT NULL,
+    `brand` VARCHAR(191) NOT NULL,
+    `price` INTEGER UNSIGNED NOT NULL,
+    `stock` SMALLINT UNSIGNED NOT NULL,
+
+    PRIMARY KEY (`id_item`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
