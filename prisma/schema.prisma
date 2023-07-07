@@ -17,6 +17,7 @@ model Users {
   username String @unique
   photo Bytes? @db.MediumBlob
   password String
+  emailValidated Boolean? @default(false)
 
   @@map("users")
 }
