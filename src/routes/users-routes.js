@@ -6,7 +6,10 @@ import { error, success } from "../utils/response.js";
 import passport from "passport";
 import multer from "multer";
 import { mimetypeValidate } from "../utils/mimetype-validate.js";
-import { ensureAuthenticated, isAuthenticated } from "../configs/passport.js";
+import {
+  ensureAuthenticated,
+  isAuthenticated,
+} from "../middleware/passport-middleware.js";
 
 const router = express.Router();
 
@@ -16,6 +19,7 @@ router.post("/signup", signupValidate, async (req, res) => {
   const salt = await bcrypt.genSalt(12);
   const hashPassword = await bcrypt.hash(password, salt);
   data.password = hashPassword;
+  data.role = "user";
 
   try {
     const user = await prisma.users.create({ data });

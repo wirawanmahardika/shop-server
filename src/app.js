@@ -1,11 +1,14 @@
 import express from "express";
 import session, { MemoryStore } from "express-session";
 import passport from "passport";
-import { initializePassport, isAuthenticated } from "./configs/passport.js";
-import usersRoutes from "./routes/users-routes.js";
+import { initializePassport } from "./configs/passport.js";
 import cors from "cors";
 import helmet from "helmet";
-import internalServerError from "./utils/errorHandler.js";
+import internalServerError from "./middleware/errorHandler.js";
+import { isAuthenticated } from "./middleware/passport-middleware.js";
+import usersRoutes from "./routes/users-routes.js";
+import categoriesRoutes from "./routes/categories-routes.js";
+import brandsRoutes from "./routes/brands-routes.js";
 
 const app = express();
 
@@ -41,6 +44,8 @@ app.use(passport.session());
 initializePassport(passport);
 
 app.use("/api/users", usersRoutes);
+app.use("/api/category", categoriesRoutes);
+app.use("/api/brands", brandsRoutes);
 
 app.get("/", isAuthenticated, (req, res) => {
   res.send("hello world");

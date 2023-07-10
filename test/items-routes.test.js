@@ -1,5 +1,3 @@
-test.todo("should create new items if the user role is admin");
-
 test.todo("should get all items");
 test.todo("should get item based on name");
 test.todo("should get item based on name and brand");

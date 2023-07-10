@@ -1,4 +1,4 @@
-import { error } from "./response.js";
+import { error } from "../utils/response.js";
 
 export default function internalServerError(err, req, res, next) {
   if (err) {
