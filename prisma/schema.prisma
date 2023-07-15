@@ -37,6 +37,7 @@ model Items {
   price Int @db.UnsignedInt
   stock Int @db.UnsignedSmallInt
   rating Decimal? @db.Decimal(2,1)
+  photo_item Bytes? @db.MediumBlob
 
   category Categories @relation(fields: [id_category], references: [id_category], map: "fk_item_category")
   brand Brands @relation(fields: [id_brand], references: [id_brand], map: "fk_item_brand")
@@ -46,7 +47,7 @@ model Items {
 
 model Brands {
   id_brand Int @db.UnsignedMediumInt @id @default(autoincrement())
-  name_brand String
+  name_brand String @unique
   brand_photo Bytes @db.MediumBlob
   items Items[]
 
@@ -56,6 +57,7 @@ model Brands {
 model Categories {
   id_category Int @db.UnsignedMediumInt @id @default(autoincrement())
   category String
+  category_photo Bytes? @db.MediumBlob
   items Items[]
 
   @@map("categories")
