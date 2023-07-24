@@ -11,11 +11,17 @@ export function initializePassport(passport) {
         const user = await prisma.users.findFirst({ where: { username } });
 
         if (!user) {
-          return done({ ...error(401, "Username tidak terdaftar") }, false);
+          return done(
+            { ...error(401, "Username tidak terdaftar"), place: "username" },
+            false
+          );
         }
 
         if (!(await bcrypt.compare(password, user.password))) {
-          return done({ ...error(401, "Password invalid") }, false);
+          return done(
+            { ...error(401, "Password invalid"), place: "password" },
+            false
+          );
         }
 
         return done(null, user);

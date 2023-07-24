@@ -1,0 +1,5 @@
+- butuh size dari item
+- harga dari tiap size
+    oleh karena itu kita butuh satu table lagi yang mengisi size, warna?, harga, stock, photo_item
+
+- membuat response error pada database menggunakan orm prisma, contoh error seperti constraint duplicate dll

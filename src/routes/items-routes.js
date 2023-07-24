@@ -6,9 +6,10 @@ import {
   reqBodyCheckIsThereKey,
   reqBodyCheckKeys,
 } from "../middleware/itemKeysCheck.js";
-import { error, success } from "../utils/response.js";
+import { error, prismaErrorResponse, success } from "../utils/response.js";
 import { arrayStringToInteger } from "../utils/arrayStringToInteger.js";
 import multer from "multer";
+import { itemBlobsToImages } from "../utils/blobToImage.js";
 
 const router = express.Router();
 
@@ -45,9 +46,7 @@ router.post(
       });
     } catch (err) {
       console.log(err);
-      return res
-        .status(403)
-        .json({ ...error(403, "Something went wrong in the database") });
+      return prismaErrorResponse(res, err);
     } finally {
       await prisma.$disconnect();
     }
@@ -63,24 +62,22 @@ router.get("/get-all", async (req, res) => {
         brand: { select: { name_brand: true } },
       },
     });
-    const returnData = data.map((d) => {
+    let returnData = data.map((d) => {
       return { ...d, category: d.category.category, brand: d.brand.name_brand };
     });
     return res.json({
       ...success("Berhasil mengambil data"),
-      data: returnData,
+      data: itemBlobsToImages(returnData),
     });
   } catch (err) {
     console.log(err);
-    return res
-      .status(403)
-      .json({ ...error(403, "Something went wrong in the database") });
+    return prismaErrorResponse(res, err);
   } finally {
     await prisma.$disconnect();
   }
 });
 
-// route ini digunakan untuk pencarian barang dengan beberapa filter
+// route ini digunakan untuk pencarian barang dengan filter
 router.post("/search", async (req, res) => {
   // filter yang disediakan seperti nama-nama brand, categories, name dari item, dan limit harga
   let { brands, categories, name, harga_gte, harga_lte } = req.body;
@@ -113,13 +110,16 @@ router.post("/search", async (req, res) => {
         },
       },
     });
+    // let returnData = data.map((d) => {
+    //   return { ...d, category: d.category.category, brand: d.brand.name_brand };
+    // });
 
-    return res.json({ ...success("Berhasil mengambil data"), data });
+    return res.json({
+      ...success("Berhasil mengambil data"),
+      data: itemBlobsToImages(data),
+    });
   } catch (err) {
-    console.log(err);
-    return res
-      .status(403)
-      .json({ ...error(403, "Something went wrong in the database") });
+    return prismaErrorResponse(res, err);
   } finally {
     await prisma.$disconnect();
   }
@@ -128,8 +128,8 @@ router.post("/search", async (req, res) => {
 // route ini digunakan untuk edit detail barang
 router.patch(
   "/edit-item",
-  isAuthenticated,
-  verifyRole,
+  // isAuthenticated,
+  // verifyRole,
   // parsing photo_item sehingga file bisa diakses di req.file
   multer().single("photo_item"),
   // mengecek apakah ada key/property yang diperlukan untuk melanjutkan aksi update
@@ -149,9 +149,7 @@ router.patch(
       });
     } catch (error) {
       console.log(error);
-      return res
-        .status(403)
-        .json({ ...error(403, "Something went wrong in the database") });
+      return prismaErrorResponse(res, error);
     } finally {
       await prisma.$disconnect();
     }
@@ -159,3 +157,4 @@ router.patch(
 );
 
 export default router;
+

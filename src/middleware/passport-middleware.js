@@ -11,7 +11,7 @@ export function isAuthenticated(req, res, next) {
 
 export function ensureAuthenticated(req, res, next) {
   if (req.isAuthenticated()) {
-    return res.status(403).json({ ...error(403, "Anda sudah pernah login") });
+    return res.status(403).json({ ...error(403, "Anda sudah login") });
   }
   return next();
 }

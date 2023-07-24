@@ -26,6 +26,7 @@ app.use(
       "http://localhost:3000",
       "http://localhost:5500",
     ],
+    methods: ["PUT", "POST", "PATCH", "DELETE"],
   })
 );
 // session digunakan untuk menyimpan riwayat sementara user
@@ -58,10 +59,7 @@ app.use("/api/brands", brandsRoutes);
 // api untuk routes items/barang, semua aksi yang berkaitan dengan items/barang dihandle di route ini
 app.use("/api/items", itemsRoutes);
 
-// ini hanya route untuk mengetest apakah seorang user sudah terautentikasi (development only) 
-app.get("/", isAuthenticated, (req, res) => {
-  res.send("hello world");
-});
+
 
 // disini adalah route yang menjadi jalan terakhir jika suatu error yang tidak diketahui terjadi
 // route ini untuk berjaga-jaga jika terjadi error, server tidak mati karena terdapat error yang tidak dihandle

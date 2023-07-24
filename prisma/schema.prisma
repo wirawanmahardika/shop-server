@@ -15,7 +15,6 @@ enum Role {
   admin
 }
 
-
 model Users {
   id String @db.Char(36) @id @default(uuid())
   email String @unique
@@ -25,8 +24,18 @@ model Users {
   photo Bytes? @db.MediumBlob
   password String
   emailValidated Boolean? @default(false)
+  wallet Wallet?
 
   @@map("users")
+}
+
+model Wallet {
+  id_wallet Int @id @default(autoincrement())
+  id_user String @db.Char(36) @unique
+  balance Int @db.UnsignedInt @default(0)
+  user Users @relation(fields: [id_user], references: [id], map: "fk_wallet_user")
+
+  @@map("wallet")
 }
 
 model Items {

@@ -2,8 +2,9 @@ import express from "express";
 import { prisma } from "../database/prisma-client.js";
 import multer from "multer";
 import { verifyRole } from "../middleware/role-verify.js";
-import { success } from "../utils/response.js";
+import { prismaErrorResponse, success } from "../utils/response.js";
 import { isAuthenticated } from "../middleware/passport-middleware.js";
+import { brandBlobsToImages } from "../utils/blobToImage.js";
 
 const router = express.Router();
 
@@ -33,7 +34,7 @@ router.post(
       });
     } catch (error) {
       console.log(error);
-      throw new Error("Something went wrong while trying to create new brands");
+      return prismaErrorResponse(res, error);
     } finally {
       await prisma.$disconnect();
     }
@@ -53,18 +54,15 @@ router.get("/", async (req, res) => {
           contains: brand,
         },
       },
-      select: {
-        id_brand: true,
-        name_brand: true,
-      },
     });
     // jika dtemukan data yang sesuai dengan syarat maka response description berupa
     // "Berhasil menambah brand baru"
     if (data.length > 0) {
       // menyimpan response ke variable response
+
       response = {
         ...success("Berhasil menambah brand baru"),
-        data: data,
+        data: brandBlobsToImages(data),
       };
       // jika tidak itemukan data yang sesuai dengan syarat maka response description berupa
       // "Brand tidak ditemukan"
@@ -78,10 +76,33 @@ router.get("/", async (req, res) => {
     return res.json(response);
   } catch (error) {
     console.log(error);
-    throw new Error("Gagal mengambil data");
+    return prismaErrorResponse(res, error);
   } finally {
     await prisma.$disconnect();
   }
 });
+
+router.patch(
+  "/edit-brand",
+  isAuthenticated,
+  verifyRole,
+  multer().single("photo"),
+  async (req, res) => {
+    const { id_brand } = req.body;
+    try {
+      const data = await prisma.brands.update({
+        where: { id_brand: id_brand && parseInt(id_brand) },
+        data: { brand_photo: req.file.buffer },
+      });
+      delete data.brand_photo;
+      res.json({ ...success("Berhasil mengupdate data " + data.name_brand) });
+    } catch (error) {
+      console.log(error);
+      return prismaErrorResponse(res, error);
+    } finally {
+      await prisma.$disconnect();
+    }
+  }
+);
 
 export default router;
