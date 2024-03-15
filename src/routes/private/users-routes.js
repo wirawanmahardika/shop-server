@@ -1,18 +1,18 @@
 import express from "express";
 import bcrypt from "bcrypt";
-import { signupValidate } from "../utils/signupValidate.js";
-import { prisma } from "../database/prisma-client.js";
-import { error, prismaErrorResponse, success } from "../utils/response.js";
+import { signupValidate } from "../../utils/signupValidate.js";
+import { prisma } from "../../database/prisma-client.js";
+import { error, prismaErrorResponse, success } from "../../utils/response.js";
 import passport from "passport";
 import multer from "multer";
-import { mimetypeValidate } from "../utils/mimetype-validate.js";
+import { mimetypeValidate } from "../../utils/mimetype-validate.js";
 import {
   ensureAuthenticated,
   isAuthenticated,
-} from "../middleware/passport-middleware.js";
-import { userBlobToImage } from "../utils/blobToImage.js";
-import { editBioRouteCheckKeys } from "../middleware/itemKeysCheck.js";
-import { verifyRole } from "../middleware/role-verify.js";
+} from "../../middleware/passport-middleware.js";
+import { userBlobToImage } from "../../utils/blobToImage.js";
+import { editBioRouteCheckKeys } from "../../middleware/itemKeysCheck.js";
+import { verifyRole } from "../../middleware/role-verify.js";
 
 const router = express.Router();
 
@@ -177,17 +177,40 @@ router.get("/", isAuthenticated, verifyRole, async (req, res) => {
   try {
     const data = await prisma.users.findMany({
       skip,
+      orderBy: {
+        role: "desc",
+      },
       select: {
         id: true,
         username: true,
         fullname: true,
         email: true,
+        role: true,
       },
     });
     return res.json({ ...success("Berhasil mengambil Semua users"), data });
   } catch (err) {
     console.log(err);
     return prismaErrorResponse(res, err);
+  } finally {
+    await prisma.$disconnect();
+  }
+});
+
+router.delete("/:id", isAuthenticated, verifyRole, async (req, res) => {
+  if (!req.params.id) {
+    return res
+      .status(403)
+      .json({ ...error(403, "Membutuhkan kode unik user") });
+  }
+  try {
+    const [wallet, user] = await prisma.$transaction([
+      prisma.wallet.delete({ where: { id_user: req.params.id } }),
+      prisma.users.delete({ where: { id: req.params.id } }),
+    ]);
+    return res.json({ ...success("Berhasil menghapus user " + user.fullname) });
+  } catch (error) {
+    return prismaErrorResponse(res, error);
   } finally {
     await prisma.$disconnect();
   }

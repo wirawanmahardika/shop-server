@@ -1,8 +1,8 @@
 import express from "express";
-import { isAuthenticated } from "../middleware/passport-middleware.js";
-import { prisma } from "../database/prisma-client.js";
-import { prismaErrorResponse, success } from "../utils/response.js";
-import { verifyRole } from "../middleware/role-verify.js";
+import { isAuthenticated } from "../../middleware/passport-middleware.js";
+import { prisma } from "../../database/prisma-client.js";
+import { prismaErrorResponse, success } from "../../utils/response.js";
+import { verifyRole } from "../../middleware/role-verify.js";
 
 const router = express.Router();
 

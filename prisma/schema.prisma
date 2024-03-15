@@ -24,7 +24,9 @@ model Users {
   photo Bytes? @db.MediumBlob
   password String
   emailValidated Boolean? @default(false)
+
   wallet Wallet?
+  penjualan Penjualan[]
 
   @@map("users")
 }
@@ -33,7 +35,7 @@ model Wallet {
   id_wallet Int @id @default(autoincrement())
   id_user String @db.Char(36) @unique
   balance Int @db.UnsignedInt @default(0)
-  user Users @relation(fields: [id_user], references: [id], map: "fk_wallet_user")
+  user Users @relation(fields: [id_user], references: [id], map: "fk_wallet_user", onDelete: Cascade)
 
   @@map("wallet")
 }
@@ -48,8 +50,9 @@ model Items {
   rating Decimal? @db.Decimal(2,1)
   photo_item Bytes? @db.MediumBlob
 
-  category Categories @relation(fields: [id_category], references: [id_category], map: "fk_item_category")
-  brand Brands @relation(fields: [id_brand], references: [id_brand], map: "fk_item_brand")
+  category Categories @relation(fields: [id_category], references: [id_category], map: "fk_item_category", onDelete: Cascade)
+  brand Brands @relation(fields: [id_brand], references: [id_brand], map: "fk_item_brand", onDelete: Cascade)
+  item_terjual Item_terjual[]
   
   @@map("items")
 }
@@ -70,4 +73,36 @@ model Categories {
   items Items[]
 
   @@map("categories")
+}
+
+model Penjualan {
+  id_penjualan Int @id @default(autoincrement())
+  id_user String @db.Char(36)
+  tanggal_beli DateTime @db.Timestamp()
+  status StatusJual
+
+  item_terjual Item_terjual[]
+  users Users @relation(fields: [id_user], references: [id], map: "fk_penjualan_users", onDelete: Cascade)
+
+  @@map("penjualan")
+}
+
+enum StatusJual {
+  pengemasan
+  dikirim
+  sampai
+  diterima
+}
+
+model Item_terjual {
+  id Int @id @default(autoincrement())
+  id_penjualan Int 
+  id_item Int @db.UnsignedMediumInt 
+  quantity Int @db.UnsignedSmallInt
+  price Int @db.UnsignedInt
+
+  penjualan Penjualan @relation(fields: [id_penjualan], references: [id_penjualan], map: "fk_item_terjual_penjualan", onDelete: Cascade)
+  items Items @relation(fields: [id_item], references: [id_item], map: "fk_item_terjual_item", onDelete: Cascade) 
+
+  @@map("item_terjual")
 }
