@@ -11,7 +11,6 @@ export function reqBodyCheckKeys(req, res, next) {
     "name",
     "price",
     "stock",
-    "rating",
   ];
   let data = req.body;
   let allowed = true;
@@ -21,7 +20,6 @@ export function reqBodyCheckKeys(req, res, next) {
       .status(403)
       .json({ ...error(403, "membutuhkan data item untuk disimpan") });
   }
-  console.log(data);
   for (const itemProperty of everyItemShouldHave) {
     if (!Object.keys(data).includes(itemProperty)) {
       allowed = false;

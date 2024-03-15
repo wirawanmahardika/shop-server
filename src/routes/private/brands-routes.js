@@ -1,10 +1,10 @@
 import express from "express";
-import { prisma } from "../database/prisma-client.js";
+import { prisma } from "../../database/prisma-client.js";
 import multer from "multer";
-import { verifyRole } from "../middleware/role-verify.js";
-import { prismaErrorResponse, success } from "../utils/response.js";
-import { isAuthenticated } from "../middleware/passport-middleware.js";
-import { brandBlobsToImages } from "../utils/blobToImage.js";
+import { verifyRole } from "../../middleware/role-verify.js";
+import { prismaErrorResponse, success } from "../../utils/response.js";
+import { isAuthenticated } from "../../middleware/passport-middleware.js";
+import { brandBlobsToImages } from "../../utils/blobToImage.js";
 
 const router = express.Router();
 
@@ -23,7 +23,7 @@ router.post(
     try {
       // menambah brand baru dan dimasukkan hasil query brand yang sudah dicreate tadi
       const data = await prisma.brands.create({
-        data: { name_brand, brand_photo: req.file.buffer },
+        data: { name_brand: name_brand, brand_photo: req.file?.buffer },
       });
       // mengganti brand_photo agar brand_photo aslinya tidak jadi diambil karena terlalu besar
       data.brand_photo = "inserted";
@@ -64,7 +64,7 @@ router.get("/", async (req, res) => {
         ...success("Berhasil menambah brand baru"),
         data: brandBlobsToImages(data),
       };
-      // jika tidak itemukan data yang sesuai dengan syarat maka response description berupa
+      // jika tidak ditemukan data yang sesuai dengan syarat maka response description berupa
       // "Brand tidak ditemukan"
     } else {
       // menyimpan response ke variable response
@@ -104,5 +104,23 @@ router.patch(
     }
   }
 );
+
+router.delete("/:id_brand", isAuthenticated, verifyRole, async (req, res) => {
+  const id_brand = req.params.id_brand;
+
+  try {
+    const data = await prisma.brands.delete({
+      where: { id_brand: id_brand && parseInt(id_brand) },
+    });
+    return res.json({
+      ...success("Berhasil menghapus brand " + data.name_brand),
+    });
+  } catch (error) {
+    console.log(error);
+    return prismaErrorResponse(res, error);
+  } finally {
+    await prisma.$disconnect();
+  }
+});
 
 export default router;

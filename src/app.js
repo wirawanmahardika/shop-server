@@ -1,16 +1,20 @@
 import express from "express";
-import session, { MemoryStore } from "express-session";
+import session from "express-session";
 import passport from "passport";
 import { initializePassport } from "./configs/passport.js";
 import cors from "cors";
 import helmet from "helmet";
 import internalServerError from "./middleware/errorHandler.js";
-import { isAuthenticated } from "./middleware/passport-middleware.js";
-import usersRoutes from "./routes/users-routes.js";
-import categoriesRoutes from "./routes/categories-routes.js";
-import brandsRoutes from "./routes/brands-routes.js";
-import itemsRoutes from "./routes/items-routes.js";
+import usersRoutes from "./routes/private/users-routes.js";
+import categoriesRoutes from "./routes/private/categories-routes.js";
+import brandsRoutes from "./routes/private/brands-routes.js";
+import itemsRoutes from "./routes/private/items-routes.js";
+import penjualanRoutes from "./routes/private/penjualan-routes.js";
+import sessionStoreMysql from "./configs/session.js";
+import dotenv from "dotenv";
+import path from 'path'
 
+dotenv.config();
 const app = express();
 
 // helmet digunakan untuk security terutama pada Content-Security-Policy
@@ -22,9 +26,10 @@ app.use(
   cors({
     credentials: true,
     origin: [
-      "http://localhost:5173",
-      "http://localhost:3000",
-      "http://localhost:5500",
+      "https://wirawan.my.id",
+      // "http://localhost:5173",
+      // "http://localhost:3000",
+      // "http://localhost:5500",
     ],
     methods: ["PUT", "POST", "PATCH", "DELETE"],
   })
@@ -32,10 +37,10 @@ app.use(
 // session digunakan untuk menyimpan riwayat sementara user
 app.use(
   session({
-    secret: "secret session cookie",
+    secret: process.env.COOKIE_SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-    store: new MemoryStore(),
+    store: sessionStoreMysql(session),
     cookie: {
       maxAge: 1000 * 3600 * 24 * 4,
       sameSite: "strict",
@@ -45,6 +50,8 @@ app.use(
     },
   })
 );
+// static file untuk public
+app.use(express.static("public"))
 // konfigurasi passport
 app.use(passport.initialize());
 app.use(passport.session());
@@ -58,6 +65,13 @@ app.use("/api/category", categoriesRoutes);
 app.use("/api/brands", brandsRoutes);
 // api untuk routes items/barang, semua aksi yang berkaitan dengan items/barang dihandle di route ini
 app.use("/api/items", itemsRoutes);
+
+app.use("/api/penjualan", penjualanRoutes);
+// UI
+app.get("*", (req,res) => {
+  const pathOfUIHTML = path.resolve("public","index.html")
+  res.sendFile(pathOfUIHTML)
+})
 
 
 

@@ -16,6 +16,14 @@ export const error = (code, description) => {
   };
 };
 
+export class prismaTransactionErrorHandler extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "Prisma error transaction";
+    this.errorAt = "prisma";
+  }
+}
+
 export function prismaErrorResponse(res, err) {
   if (!err instanceof Prisma.PrismaClientKnownRequestError) {
     return res.status(500).json({ ...error(500, "INTERNAL SERVER ERROR") });

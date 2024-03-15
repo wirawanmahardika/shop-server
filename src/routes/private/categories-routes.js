@@ -1,10 +1,10 @@
 import express from "express";
-import { prisma } from "../database/prisma-client.js";
-import { error, prismaErrorResponse, success } from "../utils/response.js";
-import { isAuthenticated } from "../middleware/passport-middleware.js";
-import { verifyRole } from "../middleware/role-verify.js";
+import { prisma } from "../../database/prisma-client.js";
+import { error, prismaErrorResponse, success } from "../../utils/response.js";
+import { isAuthenticated } from "../../middleware/passport-middleware.js";
+import { verifyRole } from "../../middleware/role-verify.js";
 import multer from "multer";
-import { categoryBlobsToImages } from "../utils/blobToImage.js";
+import { categoryBlobsToImages } from "../../utils/blobToImage.js";
 
 const router = express.Router();
 
@@ -51,6 +51,10 @@ router.post(
     try {
       const data = await prisma.categories.create({
         data: { category, category_photo: req.file?.buffer },
+        select: {
+          id_category: true,
+          category: true,
+        },
       });
       return res.json({
         ...success("Berhasil membuat kategori baru"),
@@ -96,14 +100,17 @@ router.delete(
   isAuthenticated,
   verifyRole,
   async (req, res) => {
-    const id_category = req.query.id_category;
+    const id_category = req.params.id_category;
 
     try {
-      const data = await prisma.categories.delete({ where: { id_category } });
+      const data = await prisma.categories.delete({
+        where: { id_category: parseInt(id_category) },
+      });
       return res.json({
         ...success("Berhasil menghapus category " + data.category),
       });
     } catch (err) {
+      console.log(err);
       return prismaErrorResponse(res, err);
     } finally {
       await prisma.$disconnect();
