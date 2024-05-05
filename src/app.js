@@ -12,7 +12,8 @@ import itemsRoutes from "./routes/private/items-routes.js";
 import penjualanRoutes from "./routes/private/penjualan-routes.js";
 import sessionStoreMysql from "./configs/session.js";
 import dotenv from "dotenv";
-import path from 'path'
+import path from "path";
+import previewRoutes from "./routes/private/preview-routes.js";
 
 dotenv.config();
 const app = express();
@@ -23,35 +24,35 @@ app.use(helmet());
 app.use(express.json());
 // pengaturan cors untuk keamanan cors agar mencegah XSS
 app.use(
-  cors({
-    credentials: true,
-    origin: [
-      "https://wirawan.my.id",
-      // "http://localhost:5173",
-      // "http://localhost:3000",
-      // "http://localhost:5500",
-    ],
-    methods: ["PUT", "POST", "PATCH", "DELETE"],
-  })
+    cors({
+        credentials: true,
+        origin: [
+            // "https://wirawan.my.id",
+            "http://localhost:5173",
+            // "http://localhost:3000",
+            // "http://localhost:5500",
+        ],
+        methods: ["PUT", "POST", "PATCH", "DELETE"],
+    })
 );
 // session digunakan untuk menyimpan riwayat sementara user
 app.use(
-  session({
-    secret: process.env.COOKIE_SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    store: sessionStoreMysql(session),
-    cookie: {
-      maxAge: 1000 * 3600 * 24 * 4,
-      sameSite: "strict",
-      path: "/",
-      httpOnly: true,
-      signed: true,
-    },
-  })
+    session({
+        secret: process.env.COOKIE_SESSION_SECRET,
+        resave: false,
+        saveUninitialized: false,
+        store: sessionStoreMysql(session),
+        cookie: {
+            maxAge: 1000 * 3600 * 24 * 4,
+            sameSite: "strict",
+            path: "/",
+            httpOnly: true,
+            signed: true,
+        },
+    })
 );
 // static file untuk public
-app.use(express.static("public"))
+app.use(express.static("public"));
 // konfigurasi passport
 app.use(passport.initialize());
 app.use(passport.session());
@@ -67,13 +68,13 @@ app.use("/api/brands", brandsRoutes);
 app.use("/api/items", itemsRoutes);
 
 app.use("/api/penjualan", penjualanRoutes);
+
+app.use("/api/preview", previewRoutes);
 // UI
-app.get("*", (req,res) => {
-  const pathOfUIHTML = path.resolve("public","index.html")
-  res.sendFile(pathOfUIHTML)
-})
-
-
+// app.get("*", (req, res) => {
+//     const pathOfUIHTML = path.resolve("public", "index.html");
+//     res.sendFile(pathOfUIHTML);
+// });
 
 // disini adalah route yang menjadi jalan terakhir jika suatu error yang tidak diketahui terjadi
 // route ini untuk berjaga-jaga jika terjadi error, server tidak mati karena terdapat error yang tidak dihandle

@@ -106,3 +106,10 @@ model Item_terjual {
 
   @@map("item_terjual")
 }
+
+model Preview {
+  id Int @id @default(autoincrement())
+  tipe_barang String
+  nama_barang String
+  image Bytes @db.MediumBlob
+}
