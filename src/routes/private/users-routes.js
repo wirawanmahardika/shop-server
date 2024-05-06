@@ -9,6 +9,7 @@ import {
   ensureAuthenticated,
   isAuthenticated,
 } from "../../middleware/passport-middleware.js";
+import { success } from "../../utils/response.js";
 
 const router = express.Router();
 

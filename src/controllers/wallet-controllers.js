@@ -1,4 +1,4 @@
-import { prismaErrorResponse } from "../utils/response.js";
+import { prismaErrorResponse, success } from "../utils/response.js";
 import { prisma } from "../database/prisma-client.js";
 
 const createWallet = async (req, res) => {
