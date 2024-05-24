@@ -1,8 +1,8 @@
 import express from "express";
-import { isAuthenticated } from "../../middleware/passport-middleware.js";
-import { verifyRole } from "../../middleware/role-verify.js";
+import { isAuthenticated } from "../middleware/passport-middleware.js";
+import { verifyRole } from "../middleware/role-verify.js";
 import multer from "multer";
-import categoryControllers from "../../controllers/category-controllers.js";
+import categoryControllers from "../controllers/category-controllers.js";
 
 const router = express.Router();
 

@@ -1,12 +1,12 @@
 import express from "express";
-import { verifyRole } from "../../middleware/role-verify.js";
-import { isAuthenticated } from "../../middleware/passport-middleware.js";
+import { verifyRole } from "../middleware/role-verify.js";
+import { isAuthenticated } from "../middleware/passport-middleware.js";
 import multer from "multer";
-import itemControllers from "../../controllers/item-controllers.js";
+import itemControllers from "../controllers/item-controllers.js";
 import {
   reqBodyCheckIsThereKey,
   reqBodyCheckKeys,
-} from "../../middleware/itemKeysCheck.js";
+} from "../middleware/itemKeysCheck.js";
 
 const router = express.Router();
 

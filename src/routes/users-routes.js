@@ -1,15 +1,15 @@
 import express from "express";
-import { signupValidate } from "../../utils/signupValidate.js";
+import { signupValidate } from "../utils/signupValidate.js";
 import passport from "passport";
 import multer from "multer";
-import { editBioRouteCheckKeys } from "../../middleware/itemKeysCheck.js";
-import { verifyRole } from "../../middleware/role-verify.js";
-import usersControllers from "../../controllers/users-controllers.js";
+import { editBioRouteCheckKeys } from "../middleware/itemKeysCheck.js";
+import { verifyRole } from "../middleware/role-verify.js";
+import usersControllers from "../controllers/users-controllers.js";
 import {
   ensureAuthenticated,
   isAuthenticated,
-} from "../../middleware/passport-middleware.js";
-import { success } from "../../utils/response.js";
+} from "../middleware/passport-middleware.js";
+import { success } from "../utils/response.js";
 
 const router = express.Router();
 

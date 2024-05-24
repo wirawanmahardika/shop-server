@@ -1,7 +1,7 @@
 import express from "express";
-import { isAuthenticated } from "../../middleware/passport-middleware.js";
-import { verifyRole } from "../../middleware/role-verify.js";
-import walletControllers from "../../controllers/wallet-controllers.js";
+import { isAuthenticated } from "../middleware/passport-middleware.js";
+import { verifyRole } from "../middleware/role-verify.js";
+import walletControllers from "../controllers/wallet-controllers.js";
 
 const router = express.Router();
 

@@ -1,9 +1,9 @@
 import express from "express";
 import multer from "multer";
-import { verifyRole } from "../../middleware/role-verify.js";
-import { isAuthenticated } from "../../middleware/passport-middleware.js";
+import { verifyRole } from "../middleware/role-verify.js";
+import { isAuthenticated } from "../middleware/passport-middleware.js";
 
-import brandControllers from "../../controllers/brand-controllers.js";
+import brandControllers from "../controllers/brand-controllers.js";
 
 const router = express.Router();
 

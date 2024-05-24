@@ -5,15 +5,14 @@ import { initializePassport } from "./configs/passport.js";
 import cors from "cors";
 import helmet from "helmet";
 import internalServerError from "./middleware/errorHandler.js";
-import usersRoutes from "./routes/private/users-routes.js";
-import categoriesRoutes from "./routes/private/categories-routes.js";
-import brandsRoutes from "./routes/private/brands-routes.js";
-import itemsRoutes from "./routes/private/items-routes.js";
-import penjualanRoutes from "./routes/private/penjualan-routes.js";
+import usersRoutes from "./routes/users-routes.js";
+import categoriesRoutes from "./routes/categories-routes.js";
+import brandsRoutes from "./routes/brands-routes.js";
+import itemsRoutes from "./routes/items-routes.js";
+import previewRoutes from "./routes/preview-routes.js";
+import penjualanRoutes from "./routes/penjualan-routes.js";
 import sessionStoreMysql from "./configs/session.js";
 import dotenv from "dotenv";
-import path from "path";
-import previewRoutes from "./routes/private/preview-routes.js";
 
 dotenv.config();
 const app = express();
@@ -24,32 +23,33 @@ app.use(helmet());
 app.use(express.json());
 // pengaturan cors untuk keamanan cors agar mencegah XSS
 app.use(
-    cors({
-        credentials: true,
-        origin: [
-            // "https://wirawan.my.id",
-            "http://localhost:5173",
-            // "http://localhost:3000",
-            // "http://localhost:5500",
-        ],
-        methods: ["PUT", "POST", "PATCH", "DELETE"],
-    })
+  cors({
+    credentials: true,
+    origin: [
+      // "https://wirawan.my.id",
+      "http://localhost:5173",
+      "http://localhost:5174",
+      // "http://localhost:3000",
+      // "http://localhost:5500",
+    ],
+    methods: ["PUT", "POST", "PATCH", "DELETE"],
+  })
 );
 // session digunakan untuk menyimpan riwayat sementara user
 app.use(
-    session({
-        secret: process.env.COOKIE_SESSION_SECRET,
-        resave: false,
-        saveUninitialized: false,
-        store: sessionStoreMysql(session),
-        cookie: {
-            maxAge: 1000 * 3600 * 24 * 4,
-            sameSite: "strict",
-            path: "/",
-            httpOnly: true,
-            signed: true,
-        },
-    })
+  session({
+    secret: process.env.COOKIE_SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    store: sessionStoreMysql(session),
+    cookie: {
+      maxAge: 1000 * 3600 * 24 * 4,
+      sameSite: "strict",
+      path: "/",
+      httpOnly: true,
+      signed: true,
+    },
+  })
 );
 // static file untuk public
 app.use(express.static("public"));
