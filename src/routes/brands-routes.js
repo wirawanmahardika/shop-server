@@ -35,4 +35,11 @@ router.delete(
   brandControllers.deleteBrand
 );
 
+router.get(
+  "/image/:id_brand",
+  isAuthenticated,
+  verifyRole,
+  brandControllers.getBrandImage
+);
+
 export default router;

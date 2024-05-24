@@ -18,7 +18,7 @@ dotenv.config();
 const app = express();
 
 // helmet digunakan untuk security terutama pada Content-Security-Policy
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: false }));
 // Memparsing request body yang content-type = application/json menjadi sebuah object
 app.use(express.json());
 // pengaturan cors untuk keamanan cors agar mencegah XSS
@@ -74,6 +74,7 @@ app.use("/api/preview", previewRoutes);
 // app.get("*", (req, res) => {
 //     const pathOfUIHTML = path.resolve("public", "index.html");
 //     res.sendFile(pathOfUIHTML);
+//     res.send()
 // });
 
 // disini adalah route yang menjadi jalan terakhir jika suatu error yang tidak diketahui terjadi

@@ -1,6 +1,7 @@
 import { prisma } from "../database/prisma-client.js";
 import { prismaErrorResponse, success } from "../utils/response.js";
-import { brandBlobsToImages } from "../utils/blobToImage.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 const addBrand = async (req, res) => {
   // mengambil name_brand dari req.body agar bisa menambah brand baru dengan data tersebut
@@ -37,6 +38,10 @@ const getBrandsBasedOnQuery = async (req, res) => {
           contains: brand,
         },
       },
+      select: {
+        id_brand: true,
+        name_brand: true,
+      },
     });
     // jika dtemukan data yang sesuai dengan syarat maka response description berupa
     // "Berhasil menambah brand baru"
@@ -45,7 +50,13 @@ const getBrandsBasedOnQuery = async (req, res) => {
 
       response = {
         ...success("Berhasil menambah brand baru"),
-        data: brandBlobsToImages(data),
+        data: data.map((d) => {
+          return {
+            ...d,
+            brand_photo:
+              process.env.SERVER_URL + "/api/brands/image/" + d.id_brand,
+          };
+        }),
       };
       // jika tidak ditemukan data yang sesuai dengan syarat maka response description berupa
       // "Brand tidak ditemukan"
@@ -96,4 +107,23 @@ const deleteBrand = async (req, res) => {
   }
 };
 
-export default { addBrand, getBrandsBasedOnQuery, editBrand, deleteBrand };
+const getBrandImage = async (req, res) => {
+  const idBrand = req.params.id_brand ? parseInt(req.params.id_brand) : 0;
+  const result = await prisma.brands.findUnique({
+    where: { id_brand: idBrand },
+    select: {
+      brand_photo: true,
+    },
+  });
+
+  res.set("Content-Type", "image/jpeg");
+  return res.send(result.brand_photo);
+};
+
+export default {
+  addBrand,
+  getBrandsBasedOnQuery,
+  editBrand,
+  deleteBrand,
+  getBrandImage,
+};
