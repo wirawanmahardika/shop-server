@@ -31,4 +31,11 @@ router.delete(
   categoryControllers.deleteCategory
 );
 
+router.get(
+  "/image/:id_category",
+  isAuthenticated,
+  verifyRole,
+  categoryControllers.getCategoryImage
+);
+
 export default router;

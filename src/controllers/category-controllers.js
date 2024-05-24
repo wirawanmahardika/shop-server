@@ -12,12 +12,20 @@ const getCategories = async (req, res) => {
           contains: category,
         },
       },
+      select: {
+        category: true,
+        id_category: true,
+      },
     });
 
     if (data.length > 0) {
       response = {
         ...success("Berhasil mengambil category"),
-        data: categoryBlobsToImages(data),
+        data: data.map((d) => {
+          d.category_photo =
+            process.env.SERVER_URL + "/api/category/image/" + d.id_category;
+          return d;
+        }),
       };
     } else {
       response = {
@@ -89,4 +97,25 @@ const deleteCategory = async (req, res) => {
   }
 };
 
-export default { getCategories, createNewCategory, editPhoto, deleteCategory };
+const getCategoryImage = async (req, res) => {
+  const id_category = req.params.id_category
+    ? parseInt(req.params.id_category)
+    : 0;
+  const result = await prisma.categories.findUnique({
+    where: { id_category: id_category },
+    select: {
+      category_photo: true,
+    },
+  });
+
+  res.set("Content-Type", "image/jpeg");
+  return res.send(result.category_photo);
+};
+
+export default {
+  getCategories,
+  createNewCategory,
+  editPhoto,
+  deleteCategory,
+  getCategoryImage,
+};
