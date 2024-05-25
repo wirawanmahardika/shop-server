@@ -71,14 +71,18 @@ const getAllItem = async (req, res) => {
       });
     }
 
-    let returnData = data.map((d) => {
-      return { ...d, category: d.category.category, brand: d.brand.name_brand };
+    const returnData = data.map((d) => {
+      return {
+        ...d,
+        category: d.category.category,
+        brand: d.brand.name_brand,
+        photo_item: process.env.SERVER_URL + "/api/items/image/" + d.id_item,
+      };
     });
+
     return res.json({
       ...success("Berhasil mengambil data"),
-      data: returnData[0]?.photo_item
-        ? itemBlobsToImages(returnData)
-        : returnData,
+      data: returnData,
     });
   } catch (err) {
     console.log(err);
@@ -237,6 +241,17 @@ const buyItem = async (req, res) => {
   }
 };
 
+const getItemImage = async (req, res) => {
+  const id_item = parseInt(req.params.id_item);
+  const result = await prisma.items.findUnique({
+    where: { id_item: id_item },
+    select: { photo_item: true },
+  });
+
+  res.set("Content-Type", "image/jpeg");
+  res.send(result.photo_item);
+};
+
 export default {
   createNewItem,
   getAllItem,
@@ -244,4 +259,5 @@ export default {
   editItemDetail,
   deleteItem,
   buyItem,
+  getItemImage,
 };

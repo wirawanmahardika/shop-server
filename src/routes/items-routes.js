@@ -52,4 +52,6 @@ router.delete(
 
 router.patch("/buy", isAuthenticated, itemControllers.buyItem);
 
+router.get("/image/:id_item", isAuthenticated, itemControllers.getItemImage);
+
 export default router;
