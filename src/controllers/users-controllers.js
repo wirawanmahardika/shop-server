@@ -3,6 +3,9 @@ import { prisma } from "../database/prisma-client.js";
 import { error, prismaErrorResponse, success } from "../utils/response.js";
 import { mimetypeValidate } from "../utils/mimetype-validate.js";
 import { userBlobToImage } from "../utils/blobToImage.js";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const signup = async (req, res) => {
   const { password, ...data } = req.body;
@@ -142,9 +145,18 @@ const getAllUsers = async (req, res) => {
         fullname: true,
         email: true,
         role: true,
+        photo: true,
       },
     });
-    return res.json({ ...success("Berhasil mengambil Semua users"), data });
+    return res.json({
+      ...success("Berhasil mengambil Semua users"),
+      data: data.map((d) => {
+        d.photo = d.photo
+          ? process.env.SERVER_URL + "/api/users/image/" + d.id
+          : null;
+        return d;
+      }),
+    });
   } catch (err) {
     console.log(err);
     return prismaErrorResponse(res, err);
@@ -172,6 +184,18 @@ const deleteUser = async (req, res) => {
   }
 };
 
+const getUserImage = async (req, res) => {
+  const result = await prisma.users.findUnique({
+    where: {
+      id: req.params.id_user,
+    },
+    select: { photo: true },
+  });
+
+  res.set("Content-Type", "image/jpeg");
+  res.send(result.photo);
+};
+
 export default {
   signup,
   logout,
@@ -181,4 +205,5 @@ export default {
   editBio,
   getAllUsers,
   deleteUser,
+  getUserImage,
 };
