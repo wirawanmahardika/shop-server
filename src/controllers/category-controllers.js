@@ -1,6 +1,8 @@
 import { prisma } from "../database/prisma-client.js";
-import { categoryBlobsToImages } from "../utils/blobToImage.js";
 import { prismaErrorResponse, success } from "../utils/response.js";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const getCategories = async (req, res) => {
   const category = req.query.category;

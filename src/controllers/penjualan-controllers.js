@@ -1,5 +1,8 @@
 import { prisma } from "../database/prisma-client.js";
 import { prismaErrorResponse, success } from "../utils/response.js";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const getDataPenjualan = async (req, res) => {
   const diterima = req.query.diterima;
@@ -15,8 +18,8 @@ const getDataPenjualan = async (req, res) => {
           include: {
             items: {
               select: {
+                id_item: true,
                 name: true,
-                photo_item: true,
               },
             },
           },
@@ -26,19 +29,20 @@ const getDataPenjualan = async (req, res) => {
         },
       },
     });
+
     const returnData = data.map((d) => {
       const newItemTerjual = [];
       d.item_terjual.forEach((i) => {
         i.name = i.items.name;
         i.photo_item = i.items.photo_item;
-        i.photo_item =
-          `data:image/png;base64,` + i.items.photo_item.toString("base64");
+        i.photo_item = process.env.SERVER_URL + "/api/items/image/" + i.id_item;
         delete i.items;
         newItemTerjual.push(i);
       });
       d.item_terjual = newItemTerjual;
       return d;
     });
+
     return res.json({
       ...success("Berhasil mengambil data penjualan"),
       data: returnData,
