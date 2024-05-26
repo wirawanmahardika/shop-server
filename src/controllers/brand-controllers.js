@@ -76,13 +76,24 @@ const getBrandsBasedOnQuery = async (req, res) => {
 };
 
 const editBrand = async (req, res) => {
-  const { id_brand } = req.body;
+  const { id_brand, name_brand } = req.body;
   try {
-    const data = await prisma.brands.update({
-      where: { id_brand: id_brand && parseInt(id_brand) },
-      data: { brand_photo: req.file.buffer },
+    const idBrand = id_brand ? parseInt(id_brand) : 0;
+    const countBrand = await prisma.brands.count({
+      where: { id_brand: idBrand },
     });
-    delete data.brand_photo;
+    if (countBrand === 0) {
+      res.status(403).send("brand yang ingin diedit tidak ditemukan");
+      return;
+    }
+
+    const data = await prisma.brands.update({
+      where: {
+        id_brand: idBrand,
+      },
+      data: { brand_photo: req.file.buffer, name_brand: name_brand },
+    });
+
     res.json({ ...success("Berhasil mengupdate data " + data.name_brand) });
   } catch (error) {
     logger.error(error);

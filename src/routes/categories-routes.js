@@ -21,7 +21,7 @@ router.patch(
   isAuthenticated,
   verifyRole,
   multer().single("photo"),
-  categoryControllers.editPhoto
+  categoryControllers.editCategory
 );
 
 router.delete(

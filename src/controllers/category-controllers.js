@@ -64,13 +64,24 @@ const createNewCategory = async (req, res) => {
   }
 };
 
-const editPhoto = async (req, res) => {
-  const { id_category } = req.body;
+const editCategory = async (req, res) => {
+  const { id_category, category } = req.body;
   try {
+    const idCategory = id_category ? parseInt(id_category) : 0;
+    const countCategory = await prisma.categories.count({
+      where: { id_category: idCategory },
+    });
+
+    if (countCategory === 0) {
+      res.status(403).send("Category yang ingin diedit tidak ditemukan");
+      return;
+    }
+
     const returnData = await prisma.categories.update({
-      where: { id_category: parseInt(id_category) },
+      where: { id_category: idCategory },
       data: {
         category_photo: req.file.buffer,
+        category: category,
       },
     });
     return res.json({
@@ -131,7 +142,7 @@ const getTotalCategory = async (req, res) => {
 export default {
   getCategories,
   createNewCategory,
-  editPhoto,
+  editCategory,
   deleteCategory,
   getCategoryImage,
   getTotalCategory,
