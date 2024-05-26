@@ -1,3 +1,4 @@
+import logger from "../app/logger.js";
 import { prisma } from "../app/prisma.js";
 import { prismaErrorResponse, success } from "../utils/response.js";
 import dotenv from "dotenv";
@@ -20,7 +21,7 @@ const addBrand = async (req, res) => {
       data: data,
     });
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     return prismaErrorResponse(res, error);
   }
 };
@@ -69,7 +70,7 @@ const getBrandsBasedOnQuery = async (req, res) => {
     }
     return res.json(response);
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     return prismaErrorResponse(res, error);
   }
 };
@@ -84,10 +85,8 @@ const editBrand = async (req, res) => {
     delete data.brand_photo;
     res.json({ ...success("Berhasil mengupdate data " + data.name_brand) });
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     return prismaErrorResponse(res, error);
-  } finally {
-    await prisma.$disconnect();
   }
 };
 
@@ -102,22 +101,28 @@ const deleteBrand = async (req, res) => {
       ...success("Berhasil menghapus brand " + data.name_brand),
     });
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     return prismaErrorResponse(res, error);
   }
 };
 
 const getBrandImage = async (req, res) => {
-  const idBrand = req.params.id_brand ? parseInt(req.params.id_brand) : 0;
-  const result = await prisma.brands.findUnique({
-    where: { id_brand: idBrand },
-    select: {
-      brand_photo: true,
-    },
-  });
+  try {
+    const idBrand = req.params.id_brand ? parseInt(req.params.id_brand) : 0;
+    const result = await prisma.brands.findUnique({
+      where: { id_brand: idBrand },
+      select: {
+        brand_photo: true,
+      },
+    });
 
-  res.set("Content-Type", "image/jpeg");
-  return res.send(result.brand_photo);
+    res.set("Content-Type", "image/jpeg");
+    return res.send(result.brand_photo);
+  } catch (error) {
+    logger.error(error);
+    res.status(500);
+    res.send("something went wrong");
+  }
 };
 
 export default {

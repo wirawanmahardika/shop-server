@@ -29,15 +29,16 @@ const signup = async (req, res) => {
     delete user.password;
     delete user.id;
     return res.status(200).json({ ...success("Berhasil signup"), data: user });
-  } catch (err) {
-    console.log(err);
-    return prismaErrorResponse(res, err);
+  } catch (error) {
+    logger.error(error);
+    return prismaErrorResponse(res, error);
   }
 };
 
 const logout = (req, res) => {
-  req.logOut((err) => {
-    if (err) {
+  req.logOut((error) => {
+    if (error) {
+      logger.error(error);
       return res
         .status(403)
         .json({ ...error(403, "Tidak bisa melakukan logout") });
@@ -63,7 +64,7 @@ const addPhoto = async (req, res) => {
     });
     return res.json({ ...success("Berhasil mengubah foto profile") });
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     return prismaErrorResponse(res, error);
   }
 };
@@ -75,10 +76,9 @@ const emptyPhoto = async (req, res) => {
       data: { photo: null },
     });
     return res.json({ ...success("Berhasil mengosongkan photo profile") });
-  } catch (err) {
-    return prismaErrorResponse(res, err);
-  } finally {
-    await prisma.$disconnect();
+  } catch (error) {
+    logger.error(error);
+    return prismaErrorResponse(res, error);
   }
 };
 
@@ -104,11 +104,9 @@ const getMe = async (req, res) => {
       ...success("Berhasil mengambil user"),
       data: userBlobToImage(data),
     });
-  } catch (err) {
-    console.log(err);
-    return prismaErrorResponse(res, err);
-  } finally {
-    await prisma.$disconnect();
+  } catch (error) {
+    logger.error(error);
+    return prismaErrorResponse(res, error);
   }
 };
 
@@ -123,8 +121,8 @@ const editBio = async (req, res) => {
       ...success("Berhasil update data user"),
       place: "top",
     });
-  } catch (err) {
-    console.log(err);
+  } catch (error) {
+    logger.error(error);
     return res
       .status(500)
       .json({ ...error(500, "Something went wrong"), place: "top" });
@@ -157,11 +155,9 @@ const getAllUsers = async (req, res) => {
         return d;
       }),
     });
-  } catch (err) {
-    console.log(err);
-    return prismaErrorResponse(res, err);
-  } finally {
-    await prisma.$disconnect();
+  } catch (error) {
+    logger.error(error);
+    return prismaErrorResponse(res, error);
   }
 };
 
@@ -172,28 +168,32 @@ const deleteUser = async (req, res) => {
       .json({ ...error(403, "Membutuhkan kode unik user") });
   }
   try {
-    const [wallet, user] = await prisma.$transaction([
+    const [_, user] = await prisma.$transaction([
       prisma.wallet.delete({ where: { id_user: req.params.id } }),
       prisma.users.delete({ where: { id: req.params.id } }),
     ]);
     return res.json({ ...success("Berhasil menghapus user " + user.fullname) });
   } catch (error) {
+    logger.error(error);
     return prismaErrorResponse(res, error);
-  } finally {
-    await prisma.$disconnect();
   }
 };
 
 const getUserImage = async (req, res) => {
-  const result = await prisma.users.findUnique({
-    where: {
-      id: req.params.id_user,
-    },
-    select: { photo: true },
-  });
+  try {
+    const result = await prisma.users.findUnique({
+      where: {
+        id: req.params.id_user,
+      },
+      select: { photo: true },
+    });
 
-  res.set("Content-Type", "image/jpeg");
-  res.send(result.photo);
+    res.set("Content-Type", "image/jpeg");
+    res.send(result.photo);
+  } catch (error) {
+    logger.error(error);
+    res.status(500).send("Something went wrong");
+  }
 };
 
 export default {

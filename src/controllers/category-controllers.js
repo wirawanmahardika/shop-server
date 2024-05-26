@@ -1,3 +1,4 @@
+import logger from "../app/logger.js";
 import { prisma } from "../app/prisma.js";
 import { prismaErrorResponse, success } from "../utils/response.js";
 import dotenv from "dotenv";
@@ -38,7 +39,7 @@ const getCategories = async (req, res) => {
 
     return res.json(response);
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     return prismaErrorResponse(res, error);
   }
 };
@@ -58,7 +59,7 @@ const createNewCategory = async (req, res) => {
       data: data,
     });
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     return prismaErrorResponse(res, error);
   }
 };
@@ -75,9 +76,9 @@ const editPhoto = async (req, res) => {
     return res.json({
       ...success("Berhasil update kategori " + returnData.category),
     });
-  } catch (err) {
-    console.log(err);
-    return prismaErrorResponse(res, err);
+  } catch (error) {
+    logger.error(error);
+    return prismaErrorResponse(res, error);
   }
 };
 
@@ -91,27 +92,30 @@ const deleteCategory = async (req, res) => {
     return res.json({
       ...success("Berhasil menghapus category " + data.category),
     });
-  } catch (err) {
-    console.log(err);
-    return prismaErrorResponse(res, err);
-  } finally {
-    await prisma.$disconnect();
+  } catch (error) {
+    logger.error(error);
+    return prismaErrorResponse(res, error);
   }
 };
 
 const getCategoryImage = async (req, res) => {
-  const id_category = req.params.id_category
-    ? parseInt(req.params.id_category)
-    : 0;
-  const result = await prisma.categories.findUnique({
-    where: { id_category: id_category },
-    select: {
-      category_photo: true,
-    },
-  });
+  try {
+    const id_category = req.params.id_category
+      ? parseInt(req.params.id_category)
+      : 0;
+    const result = await prisma.categories.findUnique({
+      where: { id_category: id_category },
+      select: {
+        category_photo: true,
+      },
+    });
 
-  res.set("Content-Type", "image/jpeg");
-  return res.send(result.category_photo);
+    res.set("Content-Type", "image/jpeg");
+    return res.send(result.category_photo);
+  } catch (error) {
+    logger.error(error);
+    res.status(500).send("Something went wrong");
+  }
 };
 
 export default {

@@ -1,3 +1,4 @@
+import logger from "../app/logger.js";
 import { prisma } from "../app/prisma.js";
 import { prismaErrorResponse, success } from "../utils/response.js";
 import dotenv from "dotenv";
@@ -48,10 +49,8 @@ const getDataPenjualan = async (req, res) => {
       data: returnData,
     });
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     return prismaErrorResponse(res, error);
-  } finally {
-    await prisma.$disconnect();
   }
 };
 
@@ -69,10 +68,8 @@ const setPenjualanStatus = async (req, res) => {
       ...success("Berhasil mengatur status penjualan ke " + data.status),
     });
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     return prismaErrorResponse(res, error);
-  } finally {
-    await prisma.$disconnect();
   }
 };
 
@@ -87,7 +84,7 @@ const setPenjualanStatusDiterima = async (req, res) => {
     });
     return res.json({ ...success("Barang berhasil diterima") });
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     return prismaErrorResponse(res, error);
   }
 };
@@ -120,10 +117,8 @@ const getAllItemPenjualan = async (req, res) => {
       data: returnData,
     });
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     return prismaErrorResponse(res, error);
-  } finally {
-    await prisma.$disconnect();
   }
 };
 
@@ -144,10 +139,8 @@ const getHistoryPenjualan = async (req, res) => {
       data,
     });
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     return prismaErrorResponse(res, error);
-  } finally {
-    await prisma.$disconnect();
   }
 };
 
@@ -159,10 +152,8 @@ const deleteHistoryPenjualan = async (req, res) => {
     });
     return res.json({ ...success("Berhasil menghapus history penjualan") });
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     return prismaErrorResponse(res, error);
-  } finally {
-    await prisma.$disconnect();
   }
 };
 

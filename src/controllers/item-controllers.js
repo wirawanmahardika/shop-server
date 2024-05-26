@@ -3,6 +3,7 @@ import { error, prismaErrorResponse, success } from "../utils/response.js";
 import { itemBlobsToImages } from "../utils/blobToImage.js";
 import { arrayStringToInteger } from "../utils/arrayStringToInteger.js";
 import dotenv from "dotenv";
+import logger from "../app/logger.js";
 
 dotenv.config();
 
@@ -41,9 +42,9 @@ const createNewItem = async (req, res) => {
       ...success("Berhasil membuat items baru"),
       data: returnData,
     });
-  } catch (err) {
-    console.log(err);
-    return prismaErrorResponse(res, err);
+  } catch (error) {
+    logger.error(error);
+    return prismaErrorResponse(res, error);
   }
 };
 
@@ -87,9 +88,9 @@ const getAllItem = async (req, res) => {
       ...success("Berhasil mengambil data"),
       data: returnData,
     });
-  } catch (err) {
-    console.log(err);
-    return prismaErrorResponse(res, err);
+  } catch (error) {
+    logger.error(error);
+    return prismaErrorResponse(res, error);
   }
 };
 
@@ -133,8 +134,9 @@ const searchItem = async (req, res) => {
       ...success("Berhasil mengambil data"),
       data: itemBlobsToImages(data),
     });
-  } catch (err) {
-    return prismaErrorResponse(res, err);
+  } catch (error) {
+    logger.error(error);
+    return prismaErrorResponse(res, error);
   }
 };
 
@@ -152,8 +154,8 @@ const editItemDetail = async (req, res) => {
       ...success("Berhasil mengupdate item " + returnData.name),
     });
   } catch (error) {
-    console.log(error);
-    return prismaErrorResponse(res, error);
+    logger.error(error);
+    return prismaErrorResponse(res, erroror);
   }
 };
 
@@ -168,8 +170,8 @@ const deleteItem = async (req, res) => {
     });
     return res.json({ ...success("Berhasil menghapus " + data.name) });
   } catch (error) {
-    console.log(error);
-    return prismaErrorResponse;
+    logger.error(error);
+    return prismaErrorResponse(res, error);
   }
 };
 
@@ -235,24 +237,29 @@ const buyItem = async (req, res) => {
     return res.json({
       ...success("Pembelian berhasil, barang akan segera diantarkan"),
     });
-  } catch (err) {
-    console.log(err);
-    if (err.errorAt && err.errorAt === "prisma") {
-      return res.status(402).json({ ...error(402, err.message) });
+  } catch (error) {
+    logger.error(error);
+    if (error.errorAt && error.errorAt === "prisma") {
+      return res.status(402).json({ ...error(402, error.message) });
     }
-    return prismaErrorResponse(res, err);
+    return prismaErrorResponse(res, error);
   }
 };
 
 const getItemImage = async (req, res) => {
-  const id_item = parseInt(req.params.id_item);
-  const result = await prisma.items.findUnique({
-    where: { id_item: id_item },
-    select: { photo_item: true },
-  });
+  try {
+    const id_item = parseInt(req.params.id_item);
+    const result = await prisma.items.findUnique({
+      where: { id_item: id_item },
+      select: { photo_item: true },
+    });
 
-  res.set("Content-Type", "image/jpeg");
-  res.send(result.photo_item);
+    res.set("Content-Type", "image/jpeg");
+    res.send(result.photo_item);
+  } catch (error) {
+    logger.error(error);
+    res.status(500).send("something went wrong");
+  }
 };
 
 export default {

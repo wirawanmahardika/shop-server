@@ -1,12 +1,13 @@
 import { prismaErrorResponse, success } from "../utils/response.js";
 import { prisma } from "../app/prisma.js";
+import logger from "../app/logger.js";
 
 const createWallet = async (req, res) => {
   try {
     const data = await prisma.wallet.create({ data: { id_user: req.user.id } });
     return res.json({ ...success("berhasil", 201), data });
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     return prismaErrorResponse(res, error);
   }
 };
@@ -18,7 +19,7 @@ const getUserWallet = async (req, res) => {
     });
     return res.json({ ...success("Berhasil mengambil data user", data) });
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     return prismaErrorResponse(res, error);
   }
 };
@@ -28,7 +29,7 @@ const getAllWallet = async (req, res) => {
     const data = await prisma.wallet.findMany({});
     return res.json(data);
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     return prismaErrorResponse(res, error);
   }
 };
@@ -46,6 +47,7 @@ const editBalance = async (req, res) => {
       data,
     });
   } catch (error) {
+    logger.error(error);
     return prismaErrorResponse(res, error);
   }
 };
