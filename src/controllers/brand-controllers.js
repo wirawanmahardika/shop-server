@@ -125,10 +125,21 @@ const getBrandImage = async (req, res) => {
   }
 };
 
+const getTotalBrand = async (req, res) => {
+  try {
+    const result = await prisma.brands.count();
+    res.send(result.toString());
+  } catch (error) {
+    logger.error(error);
+    res.status(500).send("Something went wrong");
+  }
+};
+
 export default {
   addBrand,
   getBrandsBasedOnQuery,
   editBrand,
   deleteBrand,
   getBrandImage,
+  getTotalBrand,
 };

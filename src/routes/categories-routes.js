@@ -38,4 +38,6 @@ router.get(
   categoryControllers.getCategoryImage
 );
 
+router.get("/count", isAuthenticated, categoryControllers.getTotalCategory);
+
 export default router;

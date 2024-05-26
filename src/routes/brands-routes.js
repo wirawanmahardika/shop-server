@@ -42,4 +42,6 @@ router.get(
   brandControllers.getBrandImage
 );
 
+router.get("/count", isAuthenticated, brandControllers.getTotalBrand);
+
 export default router;

@@ -262,6 +262,16 @@ const getItemImage = async (req, res) => {
   }
 };
 
+const getTotalItems = async (req, res) => {
+  try {
+    const result = await prisma.items.count();
+    return res.send(result.toString());
+  } catch (error) {
+    logger.error(error);
+    res.status(500).send("Something went wrong");
+  }
+};
+
 export default {
   createNewItem,
   getAllItem,
@@ -270,4 +280,5 @@ export default {
   deleteItem,
   buyItem,
   getItemImage,
+  getTotalItems,
 };

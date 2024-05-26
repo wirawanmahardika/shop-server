@@ -4,6 +4,7 @@ import { error, prismaErrorResponse, success } from "../utils/response.js";
 import { mimetypeValidate } from "../utils/mimetype-validate.js";
 import { userBlobToImage } from "../utils/blobToImage.js";
 import dotenv from "dotenv";
+import logger from "../app/logger.js";
 
 dotenv.config();
 
@@ -196,6 +197,16 @@ const getUserImage = async (req, res) => {
   }
 };
 
+const getTotalUser = async (req, res) => {
+  try {
+    const result = await prisma.users.count();
+    res.send(result.toString());
+  } catch (error) {
+    logger.error(error);
+    res.status(500).send("something went wrong");
+  }
+};
+
 export default {
   signup,
   logout,
@@ -206,4 +217,5 @@ export default {
   getAllUsers,
   deleteUser,
   getUserImage,
+  getTotalUser,
 };

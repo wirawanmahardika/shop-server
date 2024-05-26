@@ -53,6 +53,8 @@ router.get("/", isAuthenticated, verifyRole, usersControllers.getAllUsers);
 
 router.delete("/:id", isAuthenticated, verifyRole, usersControllers.deleteUser);
 
-router.get("/image/:id_user", usersControllers.getUserImage);
+router.get("/image/:id_user", isAuthenticated, usersControllers.getUserImage);
+
+router.get("/count", isAuthenticated, usersControllers.getTotalUser);
 
 export default router;

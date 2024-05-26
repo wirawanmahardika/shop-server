@@ -54,4 +54,6 @@ router.patch("/buy", isAuthenticated, itemControllers.buyItem);
 
 router.get("/image/:id_item", isAuthenticated, itemControllers.getItemImage);
 
+router.get("/count", isAuthenticated, itemControllers.getTotalItems);
+
 export default router;
