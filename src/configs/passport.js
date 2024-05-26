@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { Strategy } from "passport-local";
-import { prisma } from "../database/prisma-client.js";
+import { prisma } from "../app/prisma.js";
 import { error } from "../utils/response.js";
 
 export function initializePassport(passport) {
@@ -52,5 +52,3 @@ export function initializePassport(passport) {
     }
   });
 }
-
-

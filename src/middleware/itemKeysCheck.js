@@ -1,4 +1,4 @@
-import { prisma } from "../database/prisma-client.js";
+import { prisma } from "../app/prisma.js";
 import { error } from "../utils/response.js";
 import emailValidator from "email-validator";
 import bcrypt from "bcrypt";

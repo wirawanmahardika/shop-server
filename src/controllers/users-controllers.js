@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import { prisma } from "../database/prisma-client.js";
+import { prisma } from "../app/prisma.js";
 import { error, prismaErrorResponse, success } from "../utils/response.js";
 import { mimetypeValidate } from "../utils/mimetype-validate.js";
 import { userBlobToImage } from "../utils/blobToImage.js";

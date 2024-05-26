@@ -1,8 +1,10 @@
-import { prisma } from "../database/prisma-client.js";
+import { prisma } from "../app/prisma.js";
 import { error, prismaErrorResponse, success } from "../utils/response.js";
 import { itemBlobsToImages } from "../utils/blobToImage.js";
 import { arrayStringToInteger } from "../utils/arrayStringToInteger.js";
 import dotenv from "dotenv";
+
+dotenv.config();
 
 const createNewItem = async (req, res) => {
   // mengambil data dari request body untuk disimpan ke database

@@ -1,4 +1,4 @@
-import { prisma } from "../database/prisma-client.js";
+import { prisma } from "../app/prisma.js";
 import { prismaErrorResponse, success } from "../utils/response.js";
 import dotenv from "dotenv";
 
