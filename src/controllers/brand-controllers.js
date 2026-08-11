@@ -1,54 +1,46 @@
 import logger from "../app/logger.js";
-import { prisma } from "../app/prisma.js";
-import { prismaErrorResponse, success } from "../utils/response.js";
+import { Brand } from "../app/database.js";
+import { sequelizeErrorResponse, success, error } from "../utils/response.js";
+import { Op } from "sequelize";
 import dotenv from "dotenv";
 dotenv.config();
 
 const addBrand = async (req, res) => {
-  // mengambil name_brand dari req.body agar bisa menambah brand baru dengan data tersebut
   const { name_brand } = req.body;
 
   try {
-    // menambah brand baru dan dimasukkan hasil query brand yang sudah dicreate tadi
-    const data = await prisma.brands.create({
-      data: { name_brand: name_brand, brand_photo: req.file?.buffer },
+    const brandRecord = await Brand.create({
+      name_brand: name_brand,
+      brand_photo: req.file?.buffer,
     });
-    // mengganti brand_photo agar brand_photo aslinya tidak jadi diambil karena terlalu besar
+    const data = brandRecord.toJSON();
     data.brand_photo = "inserted";
-    // mengirim response success beserta data yang sudah berhasil dicreate
     return res.json({
       ...success("Berhasil menambah brand baru"),
       data: data,
     });
-  } catch (error) {
-    logger.error(error);
-    return prismaErrorResponse(res, error);
+  } catch (err) {
+    logger.error(err);
+    return sequelizeErrorResponse(res, err);
   }
 };
 
 const getBrandsBasedOnQuery = async (req, res) => {
-  // mengambil brand dari query
   const brand = req.query.brand;
-  // digunakan untuk memberi response
   let response;
   try {
-    // mencari beberapa brand jika mungkin dengan menggunakan syarat yang telah ditentukan
-    const data = await prisma.brands.findMany({
-      where: {
-        name_brand: {
-          contains: brand,
-        },
-      },
-      select: {
-        id_brand: true,
-        name_brand: true,
-      },
-    });
-    // jika dtemukan data yang sesuai dengan syarat maka response description berupa
-    // "Berhasil menambah brand baru"
-    if (data.length > 0) {
-      // menyimpan response ke variable response
+    const whereClause = brand
+      ? { name_brand: { [Op.like]: `%${brand}%` } }
+      : {};
 
+    const brandRecords = await Brand.findAll({
+      where: whereClause,
+      attributes: ["id_brand", "name_brand"],
+    });
+
+    const data = brandRecords.map((b) => b.toJSON());
+
+    if (data.length > 0) {
       response = {
         ...success("Berhasil menambah brand baru"),
         data: data.map((d) => {
@@ -59,19 +51,16 @@ const getBrandsBasedOnQuery = async (req, res) => {
           };
         }),
       };
-      // jika tidak ditemukan data yang sesuai dengan syarat maka response description berupa
-      // "Brand tidak ditemukan"
     } else {
-      // menyimpan response ke variable response
       response = {
         ...success("Brand tidak ditemukan"),
         data: data,
       };
     }
     return res.json(response);
-  } catch (error) {
-    logger.error(error);
-    return prismaErrorResponse(res, error);
+  } catch (err) {
+    logger.error(err);
+    return sequelizeErrorResponse(res, err);
   }
 };
 
@@ -79,7 +68,7 @@ const editBrand = async (req, res) => {
   const { id_brand, name_brand } = req.body;
   try {
     const idBrand = id_brand ? parseInt(id_brand) : 0;
-    const countBrand = await prisma.brands.count({
+    const countBrand = await Brand.count({
       where: { id_brand: idBrand },
     });
     if (countBrand === 0) {
@@ -87,17 +76,15 @@ const editBrand = async (req, res) => {
       return;
     }
 
-    const data = await prisma.brands.update({
-      where: {
-        id_brand: idBrand,
-      },
-      data: { brand_photo: req.file.buffer, name_brand: name_brand },
-    });
+    await Brand.update(
+      { brand_photo: req.file.buffer, name_brand: name_brand },
+      { where: { id_brand: idBrand } }
+    );
 
-    res.json({ ...success("Berhasil mengupdate data " + data.name_brand) });
-  } catch (error) {
-    logger.error(error);
-    return prismaErrorResponse(res, error);
+    res.json({ ...success("Berhasil mengupdate data " + name_brand) });
+  } catch (err) {
+    logger.error(err);
+    return sequelizeErrorResponse(res, err);
   }
 };
 
@@ -105,32 +92,36 @@ const deleteBrand = async (req, res) => {
   const id_brand = req.params.id_brand;
 
   try {
-    const data = await prisma.brands.delete({
-      where: { id_brand: id_brand && parseInt(id_brand) },
+    const idBrand = id_brand ? parseInt(id_brand) : 0;
+    const brandRecord = await Brand.findByPk(idBrand);
+    if (!brandRecord) {
+      return res.status(404).json({ ...error(404, "Brand tidak ditemukan") });
+    }
+    const data = brandRecord.toJSON();
+    await Brand.destroy({
+      where: { id_brand: idBrand },
     });
     return res.json({
       ...success("Berhasil menghapus brand " + data.name_brand),
     });
-  } catch (error) {
-    logger.error(error);
-    return prismaErrorResponse(res, error);
+  } catch (err) {
+    logger.error(err);
+    return sequelizeErrorResponse(res, err);
   }
 };
 
 const getBrandImage = async (req, res) => {
   try {
     const idBrand = req.params.id_brand ? parseInt(req.params.id_brand) : 0;
-    const result = await prisma.brands.findUnique({
+    const result = await Brand.findOne({
       where: { id_brand: idBrand },
-      select: {
-        brand_photo: true,
-      },
+      attributes: ["brand_photo"],
     });
 
     res.set("Content-Type", "image/jpeg");
-    return res.send(result.brand_photo);
-  } catch (error) {
-    logger.error(error);
+    return res.send(result ? result.brand_photo : null);
+  } catch (err) {
+    logger.error(err);
     res.status(500);
     res.send("something went wrong");
   }
@@ -138,10 +129,10 @@ const getBrandImage = async (req, res) => {
 
 const getTotalBrand = async (req, res) => {
   try {
-    const result = await prisma.brands.count();
+    const result = await Brand.count();
     res.send(result.toString());
-  } catch (error) {
-    logger.error(error);
+  } catch (err) {
+    logger.error(err);
     res.status(500).send("Something went wrong");
   }
 };

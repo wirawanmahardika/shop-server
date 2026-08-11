@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
-import { prisma } from "../app/prisma.js";
-import { error, prismaErrorResponse, success } from "../utils/response.js";
+import { User, Wallet, sequelize } from "../app/database.js";
+import { error, sequelizeErrorResponse, success } from "../utils/response.js";
 import { mimetypeValidate } from "../utils/mimetype-validate.js";
 import { userBlobToImage } from "../utils/blobToImage.js";
 import dotenv from "dotenv";
@@ -17,29 +17,32 @@ const signup = async (req, res) => {
   data.role = "user";
 
   try {
-    const user = await prisma.users.create({
-      data: {
-        wallet: {
-          create: {
-            balance: 0,
-          },
-        },
+    const userInstance = await User.create(
+      {
         ...data,
+        wallet: {
+          balance: 0,
+        },
       },
-    });
+      {
+        include: [{ model: Wallet, as: "wallet" }],
+      }
+    );
+
+    const user = userInstance.toJSON();
     delete user.password;
     delete user.id;
     return res.status(200).json({ ...success("Berhasil signup"), data: user });
-  } catch (error) {
-    logger.error(error);
-    return prismaErrorResponse(res, error);
+  } catch (err) {
+    logger.error(err);
+    return sequelizeErrorResponse(res, err);
   }
 };
 
 const logout = (req, res) => {
-  req.logOut((error) => {
-    if (error) {
-      logger.error(error);
+  req.logOut((err) => {
+    if (err) {
+      logger.error(err);
       return res
         .status(403)
         .json({ ...error(403, "Tidak bisa melakukan logout") });
@@ -59,71 +62,74 @@ const addPhoto = async (req, res) => {
   }
 
   try {
-    await prisma.users.update({
-      where: { id: req.user.id },
-      data: { photo: req.file.buffer },
-    });
+    await User.update(
+      { photo: req.file.buffer },
+      { where: { id: req.user.id } }
+    );
     return res.json({ ...success("Berhasil mengubah foto profile") });
-  } catch (error) {
-    logger.error(error);
-    return prismaErrorResponse(res, error);
+  } catch (err) {
+    logger.error(err);
+    return sequelizeErrorResponse(res, err);
   }
 };
 
 const emptyPhoto = async (req, res) => {
   try {
-    await prisma.users.update({
-      where: { id: req.user.id },
-      data: { photo: null },
-    });
+    await User.update(
+      { photo: null },
+      { where: { id: req.user.id } }
+    );
     return res.json({ ...success("Berhasil mengosongkan photo profile") });
-  } catch (error) {
-    logger.error(error);
-    return prismaErrorResponse(res, error);
+  } catch (err) {
+    logger.error(err);
+    return sequelizeErrorResponse(res, err);
   }
 };
 
 const getMe = async (req, res) => {
   try {
-    const data = await prisma.users.findUnique({
+    const userRecord = await User.findOne({
       where: { id: req.user.id },
-      select: {
-        email: true,
-        username: true,
-        fullname: true,
-        photo: true,
-        role: true,
-        emailValidated: true,
-        wallet: {
-          select: {
-            balance: true,
-          },
+      attributes: [
+        "email",
+        "username",
+        "fullname",
+        "photo",
+        "role",
+        "emailValidated",
+      ],
+      include: [
+        {
+          model: Wallet,
+          as: "wallet",
+          attributes: ["balance"],
         },
-      },
+      ],
     });
+
+    const data = userRecord ? userRecord.toJSON() : null;
     return res.json({
       ...success("Berhasil mengambil user"),
       data: userBlobToImage(data),
     });
-  } catch (error) {
-    logger.error(error);
-    return prismaErrorResponse(res, error);
+  } catch (err) {
+    logger.error(err);
+    return sequelizeErrorResponse(res, err);
   }
 };
 
 const editBio = async (req, res) => {
   delete req.body.password;
   try {
-    await prisma.users.update({
+    await User.update(req.body, {
       where: { id: req.user.id },
-      data: req.body,
     });
     return res.json({
       ...success("Berhasil update data user"),
       place: "top",
     });
-  } catch (error) {
-    logger.error(error);
+  } catch (err) {
+    logger.error(err);
     return res
       .status(500)
       .json({ ...error(500, "Something went wrong"), place: "top" });
@@ -131,22 +137,15 @@ const editBio = async (req, res) => {
 };
 
 const getAllUsers = async (req, res) => {
-  const skip = req.query.skip;
+  const skip = req.query.skip ? parseInt(req.query.skip) : undefined;
   try {
-    const data = await prisma.users.findMany({
-      skip,
-      orderBy: {
-        role: "desc",
-      },
-      select: {
-        id: true,
-        username: true,
-        fullname: true,
-        email: true,
-        role: true,
-        photo: true,
-      },
+    const users = await User.findAll({
+      offset: skip,
+      order: [["role", "DESC"]],
+      attributes: ["id", "username", "fullname", "email", "role", "photo"],
     });
+
+    const data = users.map((u) => u.toJSON());
     return res.json({
       ...success("Berhasil mengambil Semua users"),
       data: data.map((d) => {
@@ -156,9 +155,9 @@ const getAllUsers = async (req, res) => {
         return d;
       }),
     });
-  } catch (error) {
-    logger.error(error);
-    return prismaErrorResponse(res, error);
+  } catch (err) {
+    logger.error(err);
+    return sequelizeErrorResponse(res, err);
   }
 };
 
@@ -169,40 +168,47 @@ const deleteUser = async (req, res) => {
       .json({ ...error(403, "Membutuhkan kode unik user") });
   }
   try {
-    const [_, user] = await prisma.$transaction([
-      prisma.wallet.delete({ where: { id_user: req.params.id } }),
-      prisma.users.delete({ where: { id: req.params.id } }),
-    ]);
+    const userRecord = await User.findOne({ where: { id: req.params.id } });
+    if (!userRecord) {
+      return res.status(404).json({ ...error(404, "User tidak ditemukan") });
+    }
+    const user = userRecord.toJSON();
+
+    await sequelize.transaction(async (t) => {
+      await Wallet.destroy({ where: { id_user: req.params.id }, transaction: t });
+      await User.destroy({ where: { id: req.params.id }, transaction: t });
+    });
+
     return res.json({ ...success("Berhasil menghapus user " + user.fullname) });
-  } catch (error) {
-    logger.error(error);
-    return prismaErrorResponse(res, error);
+  } catch (err) {
+    logger.error(err);
+    return sequelizeErrorResponse(res, err);
   }
 };
 
 const getUserImage = async (req, res) => {
   try {
-    const result = await prisma.users.findUnique({
+    const result = await User.findOne({
       where: {
         id: req.params.id_user,
       },
-      select: { photo: true },
+      attributes: ["photo"],
     });
 
     res.set("Content-Type", "image/jpeg");
-    res.send(result.photo);
-  } catch (error) {
-    logger.error(error);
+    res.send(result ? result.photo : null);
+  } catch (err) {
+    logger.error(err);
     res.status(500).send("Something went wrong");
   }
 };
 
 const getTotalUser = async (req, res) => {
   try {
-    const result = await prisma.users.count();
+    const result = await User.count();
     res.send(result.toString());
-  } catch (error) {
-    logger.error(error);
+  } catch (err) {
+    logger.error(err);
     res.status(500).send("something went wrong");
   }
 };

@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { Strategy } from "passport-local";
-import { prisma } from "../app/prisma.js";
+import { User } from "../app/database.js";
 import { error } from "../utils/response.js";
 
 export function initializePassport(passport) {
@@ -8,7 +8,8 @@ export function initializePassport(passport) {
     new Strategy(
       { usernameField: "username" },
       async (username, password, done) => {
-        const user = await prisma.users.findFirst({ where: { username } });
+        const userRecord = await User.findOne({ where: { username } });
+        const user = userRecord ? userRecord.toJSON() : null;
 
         if (!user) {
           return done(
@@ -32,11 +33,11 @@ export function initializePassport(passport) {
   passport.serializeUser((user, done) => done(null, user.id));
   passport.deserializeUser(async (id, done) => {
     try {
-      const user = await prisma.users.findUnique({
+      const userRecord = await User.findOne({
         where: { id: id },
       });
 
-      if (!user) {
+      if (!userRecord) {
         return done(
           {
             ...error(401, "Riwayat login anda tidak tersedia atau telah habis"),
@@ -44,6 +45,7 @@ export function initializePassport(passport) {
           false
         );
       }
+      const user = userRecord.toJSON();
       delete user.password;
       return done(null, user);
     } catch (err) {

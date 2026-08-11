@@ -1,10 +1,9 @@
-import { prisma } from "../app/prisma.js";
+import { User } from "../app/database.js";
 import { error } from "../utils/response.js";
 import emailValidator from "email-validator";
 import bcrypt from "bcrypt";
 
 export function reqBodyCheckKeys(req, res, next) {
-  // property yang perlu dimiliki oleh semua item
   const everyItemShouldHave = [
     "id_brand",
     "id_category",
@@ -74,8 +73,8 @@ export async function editBioRouteCheckKeys(req, res, next) {
   }
 
   try {
-    const user = await prisma.users.findUnique({ where: { id: req.user.id } });
-    if (!(await bcrypt.compare(password, user.password))) {
+    const userRecord = await User.findOne({ where: { id: req.user.id } });
+    if (!userRecord || !(await bcrypt.compare(password, userRecord.password))) {
       return res.status(401).json({
         ...error(401, "Wrong password"),
         place: "password",
@@ -85,7 +84,5 @@ export async function editBioRouteCheckKeys(req, res, next) {
   } catch (err) {
     console.log(err);
     return res.status(500).json({ ...error(500, "Something went wrong") });
-  } finally {
-    await prisma.$disconnect();
   }
 }
