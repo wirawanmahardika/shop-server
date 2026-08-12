@@ -7,8 +7,6 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const getCategories = async (req, res) => {
-    console.log(process.env.SERVER_URL);
-
     const category = req.query.category;
     let response;
     try {
@@ -36,8 +34,6 @@ const getCategories = async (req, res) => {
                 data: data,
             };
         }
-
-        console.log(response);
 
         return res.json(response);
     } catch (err) {
